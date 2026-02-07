@@ -60,7 +60,7 @@ export default function LoginPage() {
         </div>
         <h2 className="text-xl font-semibold text-center mb-6 text-gray-900 dark:text-white">Login</h2>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" autoComplete="on">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Email
@@ -68,6 +68,7 @@ export default function LoginPage() {
             <input
               type="email"
               id="email"
+              autoComplete="email"
               {...register('email')}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               placeholder="seu@email.com"
@@ -82,6 +83,7 @@ export default function LoginPage() {
             <input
               type="password"
               id="password"
+              autoComplete="current-password"
               {...register('password')}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               placeholder="••••••••"
