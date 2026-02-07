@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Dumbbell, FolderTree, Calendar, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Dumbbell, FolderTree, Calendar, MapPin, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/auth/AuthProvider';
 
@@ -12,6 +12,7 @@ const menuItems = [
   { href: '/dashboard/exercicios', label: 'Exercícios', icon: Dumbbell },
   { href: '/dashboard/categorias', label: 'Categorias', icon: FolderTree },
   { href: '/dashboard/treinos', label: 'Treinos', icon: Calendar },
+  { href: '/dashboard/academias', label: 'Academias', icon: MapPin },
 ];
 
 export function Sidebar() {

@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { VideoPlayer } from '@/components/shared/VideoPlayer';
 import { Logo } from '@/components/shared/Logo';
 import { ChatBot } from '@/components/shared/ChatBot';
+import { LocationGuard } from '@/components/shared/LocationGuard';
 import { useExercicioPublic } from '@/hooks/use-exercicio-public';
 import { formatExercicioContext } from '@/lib/chat-context';
 
@@ -29,8 +30,9 @@ export default function ExercicioNFCPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-2 sm:p-4">
-      <div className="max-w-4xl mx-auto">
+    <LocationGuard>
+      <div className="min-h-screen bg-gray-900 text-white p-2 sm:p-4">
+        <div className="max-w-4xl mx-auto">
         <div className="flex justify-center mb-8 px-2 py-4">
           <Logo width={250} height={80} />
         </div>
@@ -50,12 +52,13 @@ export default function ExercicioNFCPage() {
           <VideoPlayer youtubeId={exercicio.youtubeId} vertical />
         </div>
       </div>
-      {exercicio && (
-        <ChatBot
-          context={formatExercicioContext(exercicio)}
-          type="exercicio"
-        />
-      )}
-    </div>
+        {exercicio && (
+          <ChatBot
+            context={formatExercicioContext(exercicio)}
+            type="exercicio"
+          />
+        )}
+      </div>
+    </LocationGuard>
   );
 }

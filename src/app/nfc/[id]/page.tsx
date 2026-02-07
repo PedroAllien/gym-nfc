@@ -5,6 +5,7 @@ import { VideoPlayer } from '@/components/shared/VideoPlayer';
 import { Accordion } from '@/components/shared/Accordion';
 import { Logo } from '@/components/shared/Logo';
 import { ChatBot } from '@/components/shared/ChatBot';
+import { LocationGuard } from '@/components/shared/LocationGuard';
 import { useTreinoPublic } from '@/hooks/use-treino-public';
 import { formatTreinoContext } from '@/lib/chat-context';
 import { Repeat, PlayCircle, Clock } from 'lucide-react';
@@ -31,8 +32,9 @@ export default function NFCPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-2 sm:p-4">
-      <div className="max-w-4xl mx-auto">
+    <LocationGuard>
+      <div className="min-h-screen bg-gray-900 text-white p-2 sm:p-4">
+        <div className="max-w-4xl mx-auto">
         <div className="flex justify-center mb-8 px-2 py-4">
           <Logo width={250} height={80} />
         </div>
@@ -130,12 +132,13 @@ export default function NFCPage() {
           ))}
         </div>
       </div>
-      {treino && (
-        <ChatBot
-          context={formatTreinoContext(treino)}
-          type="treino"
-        />
-      )}
-    </div>
+        {treino && (
+          <ChatBot
+            context={formatTreinoContext(treino)}
+            type="treino"
+          />
+        )}
+      </div>
+    </LocationGuard>
   );
 }
