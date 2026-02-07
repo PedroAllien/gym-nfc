@@ -1,8 +1,7 @@
 import { createClient } from './client';
 
-const supabase = createClient();
-
 export async function uploadAcademiaLogo(file: File, academiaId: string): Promise<string> {
+  const supabase = createClient();
   const fileExt = file.name.split('.').pop();
   const fileName = `${academiaId}-${Date.now()}.${fileExt}`;
   const filePath = `academias/${fileName}`;
@@ -24,6 +23,7 @@ export async function uploadAcademiaLogo(file: File, academiaId: string): Promis
 }
 
 export async function deleteAcademiaLogo(filePath: string): Promise<void> {
+  const supabase = createClient();
   const fileName = filePath.split('/').pop();
   if (!fileName) return;
 

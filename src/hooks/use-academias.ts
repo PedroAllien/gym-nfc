@@ -12,21 +12,29 @@ function academiaFromRow(row: any): Academia {
     longitude: row.longitude,
     raio: row.raio,
     logoUrl: row.logo_url || null,
+    ativo: row.ativo !== undefined ? row.ativo : true,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
 }
 
-export function useAcademias() {
+export function useAcademias(filtroStatus?: 'ativo' | 'inativo' | 'todos') {
   const supabase = useSupabase();
 
   return useQuery({
-    queryKey: ['academias'],
+    queryKey: ['academias', filtroStatus],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('academias')
-        .select('*')
-        .order('nome', { ascending: true });
+        .select('*');
+
+      if (filtroStatus === 'ativo') {
+        query = query.eq('ativo', true);
+      } else if (filtroStatus === 'inativo') {
+        query = query.eq('ativo', false);
+      }
+
+      const { data, error } = await query.order('nome', { ascending: true });
 
       if (error) throw error;
 
@@ -35,17 +43,22 @@ export function useAcademias() {
   });
 }
 
-export function useAcademia(id: string, options?: { enabled?: boolean }) {
+export function useAcademia(id: string, options?: { enabled?: boolean; includeInactive?: boolean }) {
   const supabase = useSupabase();
 
   return useQuery({
     queryKey: ['academias', id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('academias')
         .select('*')
-        .eq('id', id)
-        .single();
+        .eq('id', id);
+
+      if (!options?.includeInactive) {
+        query = query.eq('ativo', true);
+      }
+
+      const { data, error } = await query.single();
 
       if (error) throw error;
 
@@ -70,6 +83,7 @@ export function useCreateAcademia() {
           longitude: data.longitude,
           raio: data.raio,
           logo_url: data.logoUrl || null,
+          ativo: true,
         })
         .select()
         .single();
@@ -121,11 +135,34 @@ export function useDeleteAcademia() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('academias').delete().eq('id', id);
+      const { error } = await supabase
+        .from('academias')
+        .update({ ativo: false })
+        .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['academias'] });
+      queryClient.invalidateQueries({ queryKey: ['academias-public'] });
+    },
+  });
+}
+
+export function useActivateAcademia() {
+  const queryClient = useQueryClient();
+  const supabase = useSupabase();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('academias')
+        .update({ ativo: true })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['academias'] });
+      queryClient.invalidateQueries({ queryKey: ['academias-public'] });
     },
   });
 }
@@ -139,6 +176,7 @@ export function useAcademiasPublic() {
       const { data, error } = await supabase
         .from('academias')
         .select('*')
+        .eq('ativo', true)
         .order('nome', { ascending: true });
 
       if (error) throw error;

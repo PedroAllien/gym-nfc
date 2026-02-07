@@ -3,8 +3,6 @@ import { createClient } from '@/lib/supabase/client';
 import type { Exercicio } from '@/types/exercicio';
 import type { Categoria } from '@/types/categoria';
 
-const supabase = createClient();
-
 function categoriaFromRow(row: any): Categoria {
   return {
     id: row.id,
@@ -35,6 +33,7 @@ export function useExercicioPublic(id: string) {
   return useQuery({
     queryKey: ['exercicio-public', id],
     queryFn: async () => {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('exercicios')
         .select('*, categorias(*)')

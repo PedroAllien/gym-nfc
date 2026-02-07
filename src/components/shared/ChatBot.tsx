@@ -15,10 +15,23 @@ interface ChatBotProps {
   context: string;
   type: 'treino' | 'exercicio';
   className?: string;
+  openChat?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function ChatBot({ context, type, className }: ChatBotProps) {
+export function ChatBot({ context, type, className, openChat, onOpenChange }: ChatBotProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (openChat !== undefined) {
+      setIsOpen(openChat);
+    }
+  }, [openChat]);
+
+  const handleToggle = (open: boolean) => {
+    setIsOpen(open);
+    onOpenChange?.(open);
+  };
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -107,7 +120,7 @@ export function ChatBot({ context, type, className }: ChatBotProps) {
     <div className={cn('fixed bottom-4 right-4 z-50', className)}>
       {!isOpen ? (
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => handleToggle(true)}
           className="bg-red-600 hover:bg-red-700 text-white rounded-full p-4 shadow-lg transition-all hover:scale-110"
           aria-label="Abrir chat"
         >
@@ -133,7 +146,7 @@ export function ChatBot({ context, type, className }: ChatBotProps) {
                 </button>
               )}
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={() => handleToggle(false)}
                 className="text-white hover:text-gray-200 transition-colors"
                 aria-label="Fechar chat"
               >

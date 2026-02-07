@@ -8,7 +8,7 @@ import { Logo } from '@/components/shared/Logo';
 import type { Academia } from '@/types/academia';
 
 interface LocationGuardProps {
-  children: React.ReactNode;
+  children: React.ReactNode | ((academia: Academia | null) => React.ReactNode);
 }
 
 export function LocationGuard({ children }: LocationGuardProps) {
@@ -16,6 +16,7 @@ export function LocationGuard({ children }: LocationGuardProps) {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [academiaDetectada, setAcademiaDetectada] = useState<Academia | null>(null);
   const { data: academias, isLoading: isLoadingAcademias } = useAcademiasPublic();
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export function LocationGuard({ children }: LocationGuardProps) {
           return;
         }
 
-        const isInAnyAcademia = academias.some((academia: Academia) =>
+        const academiaEncontrada = academias.find((academia: Academia) =>
           isWithinRadius(
             location.latitude,
             location.longitude,
@@ -40,7 +41,8 @@ export function LocationGuard({ children }: LocationGuardProps) {
           )
         );
 
-        if (isInAnyAcademia) {
+        if (academiaEncontrada) {
+          setAcademiaDetectada(academiaEncontrada);
           setIsAuthorized(true);
         } else {
           setError('Você precisa estar dentro de uma academia cadastrada para acessar este conteúdo.');
@@ -331,6 +333,10 @@ export function LocationGuard({ children }: LocationGuardProps) {
         </div>
       </div>
     );
+  }
+
+  if (typeof children === 'function') {
+    return <>{children(academiaDetectada)}</>;
   }
 
   return <>{children}</>;

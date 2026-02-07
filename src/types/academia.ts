@@ -6,6 +6,7 @@ export interface Academia {
   longitude: number;
   raio: number;
   logoUrl?: string | null;
+  ativo: boolean;
   createdAt: string;
   updatedAt: string;
 }

@@ -3,8 +3,6 @@ import { createClient } from '@/lib/supabase/client';
 import type { Treino, TreinoExercicio } from '@/types/treino';
 import type { Categoria } from '@/types/categoria';
 
-const supabase = createClient();
-
 function categoriaFromRow(row: any): Categoria {
   return {
     id: row.id,
@@ -62,6 +60,7 @@ export function useTreinoPublic(id: string) {
   return useQuery({
     queryKey: ['treino-public', id],
     queryFn: async () => {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('treinos')
         .select(

@@ -16,7 +16,7 @@ export default function EditarAcademiaPage() {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
-  const { data: academia, isLoading } = useAcademia(id);
+  const { data: academia, isLoading } = useAcademia(id, { includeInactive: true });
   const updateAcademia = useUpdateAcademia();
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);

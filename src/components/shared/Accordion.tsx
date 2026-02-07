@@ -10,16 +10,27 @@ interface AccordionProps {
   defaultOpen?: boolean;
   className?: string;
   darkOnly?: boolean;
+  isOpen?: boolean;
+  onToggle?: () => void;
 }
 
-export function Accordion({ title, children, defaultOpen = false, className, darkOnly = false }: AccordionProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+export function Accordion({ title, children, defaultOpen = false, className, darkOnly = false, isOpen: controlledIsOpen, onToggle }: AccordionProps) {
+  const [internalIsOpen, setInternalIsOpen] = useState(defaultOpen);
+  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+  
+  const handleToggle = () => {
+    if (onToggle) {
+      onToggle();
+    } else {
+      setInternalIsOpen(!internalIsOpen);
+    }
+  };
 
   if (darkOnly) {
     return (
       <div className={cn('border border-gray-700 rounded-lg overflow-hidden bg-gray-800', className)}>
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={handleToggle}
           className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-700/50 transition-colors text-left"
         >
           <div className="flex-1">{title}</div>
@@ -42,7 +53,7 @@ export function Accordion({ title, children, defaultOpen = false, className, dar
   return (
     <div className={cn('border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800', className)}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left"
       >
         <div className="flex-1">{title}</div>
