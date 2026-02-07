@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { Logo } from '@/components/shared/Logo';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -19,6 +20,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { user, loading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -28,6 +30,13 @@ export default function LoginPage() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push('/dashboard');
+      router.refresh();
+    }
+  }, [user, authLoading, router]);
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -51,6 +60,18 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <div className="text-gray-600 dark:text-gray-400">Carregando...</div>
+      </div>
+    );
+  }
+
+  if (user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">

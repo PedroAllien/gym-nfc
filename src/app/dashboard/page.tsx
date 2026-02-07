@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Dumbbell, FolderTree, Calendar, ArrowRight } from 'lucide-react';
+import { Dumbbell, FolderTree, Calendar, MapPin, ArrowRight } from 'lucide-react';
 
 const cards = [
   {
@@ -27,6 +27,14 @@ const cards = [
     icon: Calendar,
     color: 'from-red-700 to-red-800',
     bgColor: 'bg-red-200 dark:bg-red-950/40',
+  },
+  {
+    title: 'Academias',
+    description: 'Cadastre academias com localização e raio de acesso para controlar o acesso aos QR codes',
+    href: '/dashboard/academias',
+    icon: MapPin,
+    color: 'from-red-800 to-red-900',
+    bgColor: 'bg-red-300 dark:bg-red-950/50',
   },
 ];
 
