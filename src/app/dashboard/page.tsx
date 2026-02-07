@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Dumbbell, FolderTree, Calendar, MapPin, ArrowRight } from 'lucide-react';
+import { Dumbbell, FolderTree, Calendar, MapPin, QrCode, ArrowRight } from 'lucide-react';
 
 const cards = [
   {
@@ -35,6 +35,14 @@ const cards = [
     icon: MapPin,
     color: 'from-red-800 to-red-900',
     bgColor: 'bg-red-300 dark:bg-red-950/50',
+  },
+  {
+    title: 'QR Codes',
+    description: 'Selecione exercícios e treinos para exportar múltiplos QR codes personalizados em PDF',
+    href: '/dashboard/qrcodes',
+    icon: QrCode,
+    color: 'from-red-900 to-red-950',
+    bgColor: 'bg-red-400 dark:bg-red-950/60',
   },
 ];
 
