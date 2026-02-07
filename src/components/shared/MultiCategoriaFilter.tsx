@@ -102,7 +102,7 @@ export function MultiCategoriaFilter({
       </div>
 
       {selectedCategoriaIds.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-2">
+        <div className="flex flex-wrap gap-1.5 mt-3">
           {selectedCategorias?.map((categoria) => (
             <span
               key={categoria.id}

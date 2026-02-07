@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Plus, ExternalLink } from 'lucide-react';
+import { Plus, ExternalLink, Search } from 'lucide-react';
 import { useTreinos } from '@/hooks/use-treinos';
 import { useCategorias } from '@/hooks/use-categorias';
 import { MultiCategoriaFilter } from '@/components/shared/MultiCategoriaFilter';
@@ -13,6 +13,7 @@ export default function TreinosPage() {
   const { data: treinos, isLoading } = useTreinos();
   const { data: categorias } = useCategorias();
   const [selectedCategoriaIds, setSelectedCategoriaIds] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const getCategoriasDoTreino = (treino: Treino): Categoria[] => {
     const categoriaIds = new Set(
@@ -23,17 +24,28 @@ export default function TreinosPage() {
 
   const filteredTreinos = useMemo(() => {
     if (!treinos) return [];
-    if (selectedCategoriaIds.length === 0) return treinos;
+    
+    let filtered = treinos;
 
-    return treinos.filter((treino) => {
-      const categoriasNoTreino = new Set(
-        treino.exercicios.map((ex) => ex.exercicio.categoriaId)
+    if (searchTerm.trim()) {
+      filtered = filtered.filter((treino) =>
+        treino.nome.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      return selectedCategoriaIds.some((categoriaId) =>
-        categoriasNoTreino.has(categoriaId)
-      );
-    });
-  }, [treinos, selectedCategoriaIds]);
+    }
+
+    if (selectedCategoriaIds.length > 0) {
+      filtered = filtered.filter((treino) => {
+        const categoriasNoTreino = new Set(
+          treino.exercicios.map((ex) => ex.exercicio.categoriaId)
+        );
+        return selectedCategoriaIds.some((categoriaId) =>
+          categoriasNoTreino.has(categoriaId)
+        );
+      });
+    }
+
+    return filtered;
+  }, [treinos, selectedCategoriaIds, searchTerm]);
 
   if (isLoading) {
     return <div className="text-gray-600 dark:text-gray-400">Carregando...</div>;
@@ -43,18 +55,33 @@ export default function TreinosPage() {
     <div>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4 sm:mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Treinos</h1>
-        <div className="flex items-center gap-3 flex-wrap">
+        <Link
+          href="/dashboard/treinos/novo"
+          className="flex items-center justify-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:opacity-90"
+        >
+          <Plus className="w-5 h-5" />
+          Novo Treino
+        </Link>
+      </div>
+
+      <div className="mb-4 flex flex-col sm:flex-row gap-4 items-start">
+        <div className="sm:w-auto">
           <MultiCategoriaFilter
             selectedCategoriaIds={selectedCategoriaIds}
             onCategoriaChange={setSelectedCategoriaIds}
           />
-          <Link
-            href="/dashboard/treinos/novo"
-            className="flex items-center justify-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:opacity-90"
-          >
-            <Plus className="w-5 h-5" />
-            Novo Treino
-          </Link>
+        </div>
+        <div className="w-full sm:w-64">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Pesquisar por nome..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            />
+          </div>
         </div>
       </div>
 
@@ -179,8 +206,8 @@ export default function TreinosPage() {
           </>
         ) : (
           <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-            {selectedCategoriaIds.length > 0
-              ? 'Nenhum treino encontrado para as categorias selecionadas.'
+            {searchTerm.trim() || selectedCategoriaIds.length > 0
+              ? 'Nenhum treino encontrado com os filtros aplicados.'
               : 'Nenhum treino cadastrado ainda.'}
           </div>
         )}
