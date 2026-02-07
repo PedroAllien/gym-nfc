@@ -5,6 +5,7 @@ export interface Academia {
   latitude: number;
   longitude: number;
   raio: number;
+  logoUrl?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -15,6 +16,7 @@ export interface CreateAcademia {
   latitude: number;
   longitude: number;
   raio: number;
+  logoUrl?: string | null;
 }
 
 export interface UpdateAcademia {
@@ -23,4 +25,5 @@ export interface UpdateAcademia {
   latitude?: number;
   longitude?: number;
   raio?: number;
+  logoUrl?: string | null;
 }

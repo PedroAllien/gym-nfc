@@ -11,6 +11,7 @@ function academiaFromRow(row: any): Academia {
     latitude: row.latitude,
     longitude: row.longitude,
     raio: row.raio,
+    logoUrl: row.logo_url || null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -34,7 +35,7 @@ export function useAcademias() {
   });
 }
 
-export function useAcademia(id: string) {
+export function useAcademia(id: string, options?: { enabled?: boolean }) {
   const supabase = useSupabase();
 
   return useQuery({
@@ -50,7 +51,7 @@ export function useAcademia(id: string) {
 
       return academiaFromRow(data);
     },
-    enabled: !!id,
+    enabled: options?.enabled !== undefined ? options.enabled : !!id,
   });
 }
 
@@ -68,6 +69,7 @@ export function useCreateAcademia() {
           latitude: data.latitude,
           longitude: data.longitude,
           raio: data.raio,
+          logo_url: data.logoUrl || null,
         })
         .select()
         .single();
@@ -96,6 +98,7 @@ export function useUpdateAcademia() {
           latitude: data.latitude,
           longitude: data.longitude,
           raio: data.raio,
+          logo_url: data.logoUrl !== undefined ? data.logoUrl : undefined,
         })
         .eq('id', id)
         .select()

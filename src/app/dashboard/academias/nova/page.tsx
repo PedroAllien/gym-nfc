@@ -5,15 +5,21 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { academiaSchema, type AcademiaFormData } from '@/schemas/academia.schema';
-import { useCreateAcademia } from '@/hooks/use-academias';
+import { useCreateAcademia, useUpdateAcademia } from '@/hooks/use-academias';
 import { MapPicker } from '@/components/shared/MapPicker';
+import { ImageUpload } from '@/components/shared/ImageUpload';
+import { uploadAcademiaLogo } from '@/lib/supabase/storage';
 import { toast } from 'sonner';
 import { MapPin, Loader2 } from 'lucide-react';
 
 export default function NovaAcademiaPage() {
   const router = useRouter();
   const createAcademia = useCreateAcademia();
+  const updateAcademia = useUpdateAcademia();
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
 
   const {
     register,
@@ -60,9 +66,47 @@ export default function NovaAcademiaPage() {
     );
   };
 
+  const handleLogoUpload = async (file: File): Promise<string> => {
+    setIsUploadingLogo(true);
+    try {
+      setLogoFile(file);
+      const objectUrl = URL.createObjectURL(file);
+      setLogoUrl(objectUrl);
+      setIsUploadingLogo(false);
+      return objectUrl;
+    } catch (error) {
+      setIsUploadingLogo(false);
+      toast.error('Erro ao processar logo');
+      throw error;
+    }
+  };
+
+  const handleLogoRemove = () => {
+    if (logoUrl && logoUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(logoUrl);
+    }
+    setLogoUrl(null);
+    setLogoFile(null);
+    setValue('logoUrl', null);
+  };
+
   const onSubmit = async (data: AcademiaFormData) => {
     try {
-      await createAcademia.mutateAsync(data);
+      const academia = await createAcademia.mutateAsync(data);
+      
+      if (logoFile && academia) {
+        try {
+          const uploadedUrl = await uploadAcademiaLogo(logoFile, academia.id);
+          await updateAcademia.mutateAsync({ 
+            id: academia.id,
+            data: { logoUrl: uploadedUrl }
+          });
+        } catch (uploadError) {
+          console.error('Erro ao fazer upload da logo:', uploadError);
+          toast.warning('Academia criada, mas houve erro ao fazer upload da logo');
+        }
+      }
+      
       toast.success('Academia criada com sucesso!');
       router.push('/dashboard/academias');
     } catch (error) {
@@ -86,6 +130,15 @@ export default function NovaAcademiaPage() {
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
           />
           {errors.nome && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.nome.message}</p>}
+        </div>
+
+        <div>
+          <ImageUpload
+            currentImageUrl={logoUrl}
+            onImageUpload={handleLogoUpload}
+            onImageRemove={handleLogoRemove}
+            label="Logo da Academia"
+          />
         </div>
 
         <div>

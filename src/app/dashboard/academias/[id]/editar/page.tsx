@@ -7,6 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { academiaSchema, type AcademiaFormData } from '@/schemas/academia.schema';
 import { useAcademia, useUpdateAcademia } from '@/hooks/use-academias';
 import { MapPicker } from '@/components/shared/MapPicker';
+import { ImageUpload } from '@/components/shared/ImageUpload';
+import { uploadAcademiaLogo, deleteAcademiaLogo } from '@/lib/supabase/storage';
 import { toast } from 'sonner';
 import { MapPin, Loader2 } from 'lucide-react';
 
@@ -17,6 +19,8 @@ export default function EditarAcademiaPage() {
   const { data: academia, isLoading } = useAcademia(id);
   const updateAcademia = useUpdateAcademia();
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   const {
     register,
@@ -34,12 +38,14 @@ export default function EditarAcademiaPage() {
 
   useEffect(() => {
     if (academia) {
+      setLogoUrl(academia.logoUrl || null);
       reset({
         nome: academia.nome,
         endereco: academia.endereco,
         latitude: academia.latitude,
         longitude: academia.longitude,
         raio: academia.raio,
+        logoUrl: academia.logoUrl || null,
       });
     }
   }, [academia, reset]);
@@ -73,9 +79,35 @@ export default function EditarAcademiaPage() {
     );
   };
 
+  const handleLogoUpload = async (file: File): Promise<string> => {
+    setIsUploadingLogo(true);
+    try {
+      if (academia?.logoUrl) {
+        await deleteAcademiaLogo(academia.logoUrl);
+      }
+      const url = await uploadAcademiaLogo(file, id);
+      setLogoUrl(url);
+      setValue('logoUrl', url);
+      setIsUploadingLogo(false);
+      return url;
+    } catch (error) {
+      setIsUploadingLogo(false);
+      toast.error('Erro ao fazer upload da logo');
+      throw error;
+    }
+  };
+
+  const handleLogoRemove = async () => {
+    if (academia?.logoUrl) {
+      await deleteAcademiaLogo(academia.logoUrl);
+    }
+    setLogoUrl(null);
+    setValue('logoUrl', null);
+  };
+
   const onSubmit = async (data: AcademiaFormData) => {
     try {
-      await updateAcademia.mutateAsync({ id, data });
+      await updateAcademia.mutateAsync({ id, data: { ...data, logoUrl } });
       toast.success('Academia atualizada com sucesso!');
       router.push('/dashboard/academias');
     } catch (error) {
@@ -107,6 +139,15 @@ export default function EditarAcademiaPage() {
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
           />
           {errors.nome && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.nome.message}</p>}
+        </div>
+
+        <div>
+          <ImageUpload
+            currentImageUrl={logoUrl}
+            onImageUpload={handleLogoUpload}
+            onImageRemove={handleLogoRemove}
+            label="Logo da Academia"
+          />
         </div>
 
         <div>

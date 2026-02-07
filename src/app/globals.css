@@ -57,3 +57,23 @@
     @apply bg-background text-foreground;
   }
 }
+
+@media print {
+  @page {
+    size: 85mm 54mm;
+    margin: 0;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .print\\:flex,
+  .print\\:flex * {
+    visibility: visible;
+  }
+  .print\\:flex {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
