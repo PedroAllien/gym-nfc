@@ -1,17 +1,25 @@
 import type { Treino } from '@/types/treino';
 import type { Exercicio } from '@/types/exercicio';
 
-export function formatTreinoContext(treino: Treino): string {
+export function formatTreinoContext(treino: Treino, exerciciosConcluidos?: Set<string>): string {
   let context = `Treino: ${treino.nome}\n`;
   
   if (treino.descricao) {
     context += `Descrição: ${treino.descricao}\n`;
   }
   
+  const totalExercicios = treino.exercicios.length;
+  const concluidos = exerciciosConcluidos?.size || 0;
+  
+  context += `\nStatus do Treino: ${concluidos} de ${totalExercicios} exercícios concluídos\n`;
+  
   context += `\nExercícios do Treino:\n`;
   
   treino.exercicios.forEach((te, index) => {
-    context += `\n${index + 1}. ${te.exercicio.nome}`;
+    const isConcluido = exerciciosConcluidos?.has(te.id) || false;
+    const status = isConcluido ? '✓ CONCLUÍDO' : '○ PENDENTE';
+    
+    context += `\n${index + 1}. ${te.exercicio.nome} [${status}]`;
     
     if (te.exercicio.categoria) {
       context += ` (Categoria: ${te.exercicio.categoria.nome})`;

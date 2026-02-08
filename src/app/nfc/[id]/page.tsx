@@ -318,10 +318,11 @@ export default function NFCPage() {
         </div>
         {treino && (
           <ChatBot
-            context={formatTreinoContext(treino)}
+            context={formatTreinoContext(treino, exerciciosConcluidos)}
             type="treino"
             openChat={openChat}
             onOpenChange={setOpenChat}
+            exerciciosConcluidos={exerciciosConcluidos}
           />
         )}
 

@@ -1,8 +1,27 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, MessageCircle, X, Loader2 } from 'lucide-react';
+import { Send, MessageCircle, X, Loader2, Mic, Volume2, Square } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { parseMarkdown } from '@/lib/markdown';
+
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
+
+interface SpeechRecognition extends EventTarget {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  start(): void;
+  stop(): void;
+  onresult: (event: any) => void;
+  onerror: (event: any) => void;
+  onend: () => void;
+}
 
 interface Message {
   id: string;
@@ -17,9 +36,10 @@ interface ChatBotProps {
   className?: string;
   openChat?: boolean;
   onOpenChange?: (open: boolean) => void;
+  exerciciosConcluidos?: Set<string>;
 }
 
-export function ChatBot({ context, type, className, openChat, onOpenChange }: ChatBotProps) {
+export function ChatBot({ context, type, className, openChat, onOpenChange, exerciciosConcluidos }: ChatBotProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -35,8 +55,13 @@ export function ChatBot({ context, type, className, openChat, onOpenChange }: Ch
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+  const [hasSpeechSupport, setHasSpeechSupport] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -51,6 +76,49 @@ export function ChatBot({ context, type, className, openChat, onOpenChange }: Ch
       inputRef.current.focus();
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const hasRecognition = !!SpeechRecognitionClass;
+      const hasSynthesis = !!window.speechSynthesis;
+      
+      setHasSpeechSupport(hasRecognition && hasSynthesis);
+      
+      if (SpeechRecognitionClass) {
+        const recognition = new SpeechRecognitionClass() as SpeechRecognition;
+        recognition.lang = 'pt-BR';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript;
+          setInput(transcript);
+          setIsRecording(false);
+        };
+
+        recognition.onerror = (event: any) => {
+          console.error('Erro no reconhecimento de voz:', event.error);
+          setIsRecording(false);
+        };
+
+        recognition.onend = () => {
+          setIsRecording(false);
+        };
+
+        recognitionRef.current = recognition;
+      }
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -114,6 +182,66 @@ export function ChatBot({ context, type, className, openChat, onOpenChange }: Ch
 
   const clearChat = () => {
     setMessages([]);
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      setSpeakingMessageId(null);
+    }
+  };
+
+  const startRecording = () => {
+    if (recognitionRef.current && !isRecording) {
+      try {
+        recognitionRef.current.start();
+        setIsRecording(true);
+      } catch (error) {
+        console.error('Erro ao iniciar gravação:', error);
+      }
+    }
+  };
+
+  const stopRecording = () => {
+    if (recognitionRef.current && isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const speakText = (text: string, messageId: string) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) {
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    setSpeakingMessageId(messageId);
+
+    const cleanText = text.replace(/\*\*/g, '').replace(/\*/g, '');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'pt-BR';
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+
+    utterance.onstart = () => {
+      setSpeakingMessageId(messageId);
+    };
+
+    utterance.onend = () => {
+      setSpeakingMessageId(null);
+    };
+
+    utterance.onerror = () => {
+      setSpeakingMessageId(null);
+    };
+
+    synthesisRef.current = utterance;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const stopSpeaking = () => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      setSpeakingMessageId(null);
+    }
   };
 
   return (
@@ -183,7 +311,36 @@ export function ChatBot({ context, type, className, openChat, onOpenChange }: Ch
                         : 'bg-gray-700 text-gray-100'
                     )}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        {message.role === 'assistant' ? (
+                          <div className="text-sm whitespace-pre-wrap">
+                            {parseMarkdown(message.content)}
+                          </div>
+                        ) : (
+                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        )}
+                      </div>
+                      {message.role === 'assistant' && (
+                        <button
+                          onClick={() => {
+                            if (speakingMessageId === message.id) {
+                              stopSpeaking();
+                            } else {
+                              speakText(message.content, message.id);
+                            }
+                          }}
+                          className="flex-shrink-0 text-red-500 hover:text-red-400 transition-colors p-1"
+                          title={speakingMessageId === message.id ? 'Parar áudio' : 'Ouvir resposta'}
+                        >
+                          {speakingMessageId === message.id ? (
+                            <Square className="w-5 h-5" />
+                          ) : (
+                            <Volume2 className="w-5 h-5" />
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))
@@ -200,19 +357,38 @@ export function ChatBot({ context, type, className, openChat, onOpenChange }: Ch
 
           <div className="border-t border-gray-700 p-4">
             <div className="flex gap-2">
+              {hasSpeechSupport && (
+                <button
+                  onClick={isRecording ? stopRecording : startRecording}
+                  disabled={isLoading}
+                  className={cn(
+                    'px-3 py-2 rounded-lg transition-colors flex items-center justify-center',
+                    isRecording
+                      ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse'
+                      : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                  )}
+                  title={isRecording ? 'Parar gravação' : 'Gravar áudio'}
+                >
+                  {isRecording ? (
+                    <Square className="w-5 h-5" />
+                  ) : (
+                    <Mic className="w-5 h-5" />
+                  )}
+                </button>
+              )}
               <input
                 ref={inputRef}
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Digite sua pergunta..."
+                placeholder={isRecording ? 'Gravando...' : 'Digite sua pergunta...'}
                 className="flex-1 px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600"
-                disabled={isLoading}
+                disabled={isLoading || isRecording}
               />
               <button
                 onClick={sendMessage}
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim() || isLoading || isRecording}
                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
                 {isLoading ? (
@@ -222,6 +398,12 @@ export function ChatBot({ context, type, className, openChat, onOpenChange }: Ch
                 )}
               </button>
             </div>
+            {isRecording && (
+              <div className="mt-2 text-xs text-red-400 flex items-center gap-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                Gravando... Clique novamente para parar
+              </div>
+            )}
           </div>
         </div>
       )}
