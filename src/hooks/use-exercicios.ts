@@ -15,7 +15,6 @@ function exercicioFromRow(row: any, categoria: any): Exercicio {
     categoria: {
       id: categoria.id,
       nome: categoria.nome,
-      slug: categoria.slug,
       descricao: categoria.descricao,
       createdAt: categoria.created_at,
       updatedAt: categoria.updated_at,

@@ -7,7 +7,6 @@ export interface Database {
         Row: {
           id: string;
           nome: string;
-          slug: string;
           descricao: string | null;
           created_at: string;
           updated_at: string;
@@ -15,7 +14,6 @@ export interface Database {
         Insert: {
           id?: string;
           nome: string;
-          slug: string;
           descricao?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -23,7 +21,6 @@ export interface Database {
         Update: {
           id?: string;
           nome?: string;
-          slug?: string;
           descricao?: string | null;
           created_at?: string;
           updated_at?: string;

@@ -1,7 +1,6 @@
 export interface Categoria {
   id: string;
   nome: string;
-  slug: string;
   descricao?: string;
   createdAt: string;
   updatedAt: string;

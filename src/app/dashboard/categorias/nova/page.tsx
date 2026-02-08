@@ -48,20 +48,6 @@ export default function NovaCategoriaPage() {
         </div>
 
         <div>
-          <label htmlFor="slug" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Slug *
-          </label>
-          <input
-            type="text"
-            id="slug"
-            {...register('slug')}
-            placeholder="peito"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-          />
-          {errors.slug && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.slug.message}</p>}
-        </div>
-
-        <div>
           <label htmlFor="descricao" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Descrição
           </label>

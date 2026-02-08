@@ -7,7 +7,6 @@ function categoriaFromRow(row: any): Categoria {
   return {
     id: row.id,
     nome: row.nome,
-    slug: row.slug,
     descricao: row.descricao,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

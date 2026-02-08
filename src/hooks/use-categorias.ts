@@ -6,7 +6,6 @@ function categoriaFromRow(row: any): Categoria {
   return {
     id: row.id,
     nome: row.nome,
-    slug: row.slug,
     descricao: row.descricao,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -61,7 +60,6 @@ export function useCreateCategoria() {
         .from('categorias')
         .insert({
           nome: data.nome,
-          slug: data.slug,
           descricao: data.descricao,
         })
         .select()
@@ -87,7 +85,6 @@ export function useUpdateCategoria() {
         .from('categorias')
         .update({
           nome: data.nome,
-          slug: data.slug,
           descricao: data.descricao,
         })
         .eq('id', id)

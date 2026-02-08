@@ -35,9 +35,6 @@ export default function CategoriasPage() {
                       Nome
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                      Slug
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                       Ações
                     </th>
                   </tr>
@@ -47,9 +44,6 @@ export default function CategoriasPage() {
                     <tr key={categoria.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900 dark:text-white">{categoria.nome}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500 dark:text-gray-400">{categoria.slug}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <Link
@@ -68,8 +62,7 @@ export default function CategoriasPage() {
             <div className="md:hidden divide-y divide-gray-200 dark:divide-gray-700">
               {categorias.map((categoria) => (
                 <div key={categoria.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                  <div className="font-medium text-gray-900 dark:text-white mb-1">{categoria.nome}</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-3">{categoria.slug}</div>
+                  <div className="font-medium text-gray-900 dark:text-white mb-3">{categoria.nome}</div>
                   <Link
                     href={`/dashboard/categorias/${categoria.id}/editar`}
                     className="text-primary hover:opacity-80 text-sm"

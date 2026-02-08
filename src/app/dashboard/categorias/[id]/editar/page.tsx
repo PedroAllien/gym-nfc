@@ -28,7 +28,6 @@ export default function EditarCategoriaPage() {
     if (categoria) {
       reset({
         nome: categoria.nome,
-        slug: categoria.slug,
         descricao: categoria.descricao || '',
       });
     }
@@ -68,19 +67,6 @@ export default function EditarCategoriaPage() {
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
           />
           {errors.nome && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.nome.message}</p>}
-        </div>
-
-        <div>
-          <label htmlFor="slug" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Slug *
-          </label>
-          <input
-            type="text"
-            id="slug"
-            {...register('slug')}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-          />
-          {errors.slug && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.slug.message}</p>}
         </div>
 
         <div>
