@@ -156,10 +156,14 @@ export default function QRCodesPage() {
           cardIndex = 0;
         }
 
+        const baseUrl = typeof window !== 'undefined' 
+          ? window.location.origin 
+          : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000');
+        
         const url =
           item.tipo === 'exercicio'
-            ? `${APP_URL}/nfc/exercicios/${item.id}`
-            : `${APP_URL}/nfc/${item.id}`;
+            ? `${baseUrl}/nfc/exercicios/${item.id}`
+            : `${baseUrl}/nfc/${item.id}`;
 
         const academia = academias?.find((a) => a.id === academiaId);
         const qrCodeImage = await generateQRCodeImageData(

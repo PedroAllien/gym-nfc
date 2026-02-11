@@ -1,3 +1,12 @@
 export const APP_NAME = 'GymNFC';
 
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3080';
+export const getAppUrl = (): string => {
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+};
+
+export const APP_URL = typeof window !== 'undefined' 
+  ? window.location.origin 
+  : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000');
