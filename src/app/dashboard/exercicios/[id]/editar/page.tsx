@@ -3,11 +3,12 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { exercicioSchema, type ExercicioFormData } from '@/schemas/exercicio.schema';
+import { updateExercicioSchema, type UpdateExercicioFormData } from '@/schemas/exercicio.schema';
 import { useExercicio, useUpdateExercicio } from '@/hooks/use-exercicios';
 import { useCategorias } from '@/hooks/use-categorias';
 import { toast } from 'sonner';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import type { VideoSource } from '@/types/exercicio';
 
 export default function EditarExercicioPage() {
   const params = useParams();
@@ -16,30 +17,51 @@ export default function EditarExercicioPage() {
   const { data: exercicio, isLoading } = useExercicio(id);
   const { data: categorias } = useCategorias();
   const updateExercicio = useUpdateExercicio();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
-  } = useForm<ExercicioFormData>({
-    resolver: zodResolver(exercicioSchema),
+    setValue,
+    watch,
+  } = useForm<UpdateExercicioFormData>({
+    resolver: zodResolver(updateExercicioSchema),
+    defaultValues: { videoSource: 'file', videoFile: null, videoUrl: '' },
   });
+
+  const videoSource = watch('videoSource');
+  const videoFile = watch('videoFile');
+  const videoUrl = watch('videoUrl');
 
   useEffect(() => {
     if (exercicio) {
+      const hasUrl = !!(exercicio.youtubeUrl || exercicio.externalVideoUrl);
       reset({
         nome: exercicio.nome,
         descricao: exercicio.descricao || '',
-        youtubeUrl: exercicio.youtubeUrl,
         categoriaId: exercicio.categoriaId,
+        videoSource: hasUrl ? 'url' : 'file',
+        videoFile: null,
+        videoUrl: exercicio.youtubeUrl || exercicio.externalVideoUrl || '',
       });
     }
   }, [exercicio, reset]);
 
-  const onSubmit = async (data: ExercicioFormData) => {
+  const onSubmit = async (data: UpdateExercicioFormData) => {
     try {
-      await updateExercicio.mutateAsync({ id, data });
+      await updateExercicio.mutateAsync({
+        id,
+        data: {
+          nome: data.nome,
+          descricao: data.descricao,
+          categoriaId: data.categoriaId,
+          videoSource: data.videoSource as VideoSource,
+          videoFile: data.videoSource === 'file' ? (data.videoFile ?? fileInputRef.current?.files?.[0] ?? null) : null,
+          videoUrl: data.videoSource === 'url' ? (data.videoUrl?.trim() || null) : null,
+        },
+      });
       toast.success('Exercício atualizado com sucesso!');
       router.push(`/dashboard/exercicios/${id}`);
     } catch (error) {
@@ -54,6 +76,8 @@ export default function EditarExercicioPage() {
   if (!exercicio) {
     return <div className="text-gray-600 dark:text-gray-400">Exercício não encontrado</div>;
   }
+
+  const hasCurrentVideo = !!(exercicio.videoUrl || exercicio.youtubeUrl || exercicio.externalVideoUrl);
 
   return (
     <div>
@@ -86,18 +110,62 @@ export default function EditarExercicioPage() {
         </div>
 
         <div>
-          <label htmlFor="youtubeUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            URL do YouTube *
-          </label>
-          <input
-            type="url"
-            id="youtubeUrl"
-            {...register('youtubeUrl')}
-            placeholder="https://www.youtube.com/watch?v=..."
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-          />
-          {errors.youtubeUrl && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.youtubeUrl.message}</p>
+          <span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vídeo do exercício</span>
+          {hasCurrentVideo && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+              Vídeo atual mantido. Escolha &quot;Enviar arquivo&quot; ou &quot;URL&quot; apenas para substituir.
+            </p>
+          )}
+          <div className="flex gap-4 mb-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                value="file"
+                {...register('videoSource', { onChange: () => { setValue('videoUrl', ''); setValue('videoFile', null); } })}
+                className="text-primary focus:ring-primary"
+              />
+              <span>Enviar arquivo</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                value="url"
+                {...register('videoSource', { onChange: () => setValue('videoFile', null) })}
+                className="text-primary focus:ring-primary"
+              />
+              <span>URL (YouTube ou Vimeo)</span>
+            </label>
+          </div>
+
+          {videoSource === 'file' && (
+            <>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">MP4, WebM ou MOV, máx. 50MB. Será comprimido antes do envio.</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                id="videoFile"
+                accept="video/mp4,video/webm,video/quicktime"
+                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-900 text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-primary file:text-white file:text-sm"
+                onChange={(e) => setValue('videoFile', e.target.files?.[0] ?? null, { shouldValidate: true })}
+              />
+              {videoFile && videoFile instanceof File && (
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{videoFile.name}</p>
+              )}
+            </>
+          )}
+
+          {videoSource === 'url' && (
+            <input
+              type="url"
+              id="videoUrl"
+              {...register('videoUrl', { onBlur: (e) => setValue('videoUrl', e.target.value?.trim() ?? '', { shouldValidate: true }) })}
+              placeholder="https://www.youtube.com/watch?v=... ou https://vimeo.com/..."
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400"
+            />
+          )}
+
+          {(errors.videoFile?.message ?? errors.videoUrl?.message) && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.videoFile?.message ?? errors.videoUrl?.message}</p>
           )}
         </div>
 

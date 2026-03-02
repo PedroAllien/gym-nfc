@@ -60,8 +60,8 @@ export function formatExercicioContext(exercicio: Exercicio): string {
     context += `Descrição: ${exercicio.descricao}\n`;
   }
   
-  if (exercicio.youtubeId) {
-    context += `Vídeo de demonstração disponível (ID: ${exercicio.youtubeId})\n`;
+  if (exercicio.videoUrl || exercicio.youtubeId) {
+    context += 'Vídeo de demonstração disponível\n';
   }
   
   return context;
