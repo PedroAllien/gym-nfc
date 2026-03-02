@@ -49,7 +49,7 @@ export async function compressVideo(file: File): Promise<File> {
     const data = await ffmpeg.readFile('out.mp4');
     await ffmpeg.deleteFile(name);
     await ffmpeg.deleteFile('out.mp4');
-    const blob = new Blob([data], { type: 'video/mp4' });
+    const blob = new Blob([new Uint8Array(data as Uint8Array)], { type: 'video/mp4' });
     return new File([blob], file.name.replace(/\.[^.]+$/, '.mp4'), { type: 'video/mp4' });
   } catch {
     return file;
