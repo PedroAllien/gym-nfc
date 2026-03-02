@@ -9,7 +9,7 @@ import { Download, Search, CheckSquare, Square, X, Dumbbell, Calendar } from 'lu
 import { APP_URL } from '@/lib/constants';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
-import { generateQRCodeImageData } from '@/lib/qrcode-utils';
+import { generateQRCodeCardImageData, CARD_WIDTH_MM, CARD_HEIGHT_MM } from '@/lib/qrcode-utils';
 
 type SelectedItem = {
   id: string;
@@ -133,18 +133,13 @@ export default function QRCodesPage() {
       
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 2;
-      const spacing = 1;
-      
-      const availableWidth = pageWidth - margin * 2;
-      const availableHeight = pageHeight - margin * 2;
-      
-      const cardsPerRow = 2;
-      const cardsPerCol = 2;
+      const margin = 5;
+      const spacing = 2;
+      const cardWidth = CARD_WIDTH_MM;
+      const cardHeight = CARD_HEIGHT_MM;
+      const cardsPerRow = Math.floor((pageWidth - margin * 2 + spacing) / (cardWidth + spacing));
+      const cardsPerCol = Math.floor((pageHeight - margin * 2 + spacing) / (cardHeight + spacing));
       const cardsPerPage = cardsPerRow * cardsPerCol;
-      
-      const cardWidth = (availableWidth - spacing) / cardsPerRow;
-      const cardHeight = (availableHeight - spacing) / cardsPerCol;
 
       let currentPage = 0;
       let cardIndex = 0;
@@ -166,45 +161,21 @@ export default function QRCodesPage() {
             : `${baseUrl}/nfc/${item.id}`;
 
         const academia = academias?.find((a) => a.id === academiaId);
-        const qrCodeImage = await generateQRCodeImageData(
+        const qrCodeImage = await generateQRCodeCardImageData(
           url,
           academia?.logoUrl || null,
           academia?.nome,
           item.tipo,
           item.nome,
-          200,
           isDarkMode
         );
-
-        const img = new Image();
-        await new Promise<void>((resolve, reject) => {
-          img.onload = () => resolve();
-          img.onerror = reject;
-          img.src = qrCodeImage;
-        });
-
-        const imageAspectRatio = img.width / img.height;
-        const cardAspectRatio = cardWidth / cardHeight;
 
         const row = Math.floor(cardIndex / cardsPerRow);
         const col = cardIndex % cardsPerRow;
         const x = margin + col * (cardWidth + spacing);
         const y = margin + row * (cardHeight + spacing);
 
-        let finalWidth = cardWidth;
-        let finalHeight = cardHeight;
-        let finalX = x;
-        let finalY = y;
-
-        if (cardAspectRatio > imageAspectRatio) {
-          finalWidth = cardHeight * imageAspectRatio;
-          finalX = x + (cardWidth - finalWidth) / 2;
-        } else {
-          finalHeight = cardWidth / imageAspectRatio;
-          finalY = y + (cardHeight - finalHeight) / 2;
-        }
-
-        pdf.addImage(qrCodeImage, 'PNG', finalX, finalY, finalWidth, finalHeight, undefined, 'FAST');
+        pdf.addImage(qrCodeImage, 'PNG', x, y, cardWidth, cardHeight, undefined, 'FAST');
 
         cardIndex++;
       }
