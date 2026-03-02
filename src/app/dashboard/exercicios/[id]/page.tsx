@@ -168,7 +168,11 @@ export default function ExercicioPage() {
 
         <div>
           <h2 className="text-base sm:text-lg font-semibold mb-4 text-gray-900 dark:text-white">Vídeo</h2>
-          <VideoPlayer youtubeId={exercicio.youtubeId} vertical />
+          {(exercicio.videoUrl || exercicio.externalVideoUrl || exercicio.youtubeId) ? (
+            <VideoPlayer videoUrl={exercicio.videoUrl} externalVideoUrl={exercicio.externalVideoUrl} youtubeId={exercicio.youtubeId} vertical />
+          ) : (
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Nenhum vídeo cadastrado</p>
+          )}
         </div>
       </div>
     </div>

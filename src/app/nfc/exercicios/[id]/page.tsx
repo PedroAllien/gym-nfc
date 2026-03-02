@@ -112,7 +112,7 @@ export default function ExercicioNFCPage() {
         )}
 
         <div className="bg-gray-800 rounded-lg p-3 sm:p-6">
-          <VideoPlayer youtubeId={exercicio.youtubeId} vertical />
+          <VideoPlayer videoUrl={exercicio.videoUrl} externalVideoUrl={exercicio.externalVideoUrl} youtubeId={exercicio.youtubeId} vertical />
         </div>
         </div>
         {exercicio && (

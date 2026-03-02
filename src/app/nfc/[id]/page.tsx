@@ -297,7 +297,7 @@ export default function NFCPage() {
                   <h4 className="text-sm font-medium text-gray-300 mb-2">
                     Demonstração
                   </h4>
-                  <VideoPlayer youtubeId={treinoExercicio.exercicio.youtubeId} vertical />
+                  <VideoPlayer videoUrl={treinoExercicio.exercicio.videoUrl} externalVideoUrl={treinoExercicio.exercicio.externalVideoUrl} youtubeId={treinoExercicio.exercicio.youtubeId} vertical />
                 </div>
 
                 {treinoExercicio.exercicio.descricao && (
